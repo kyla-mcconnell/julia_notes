@@ -62,8 +62,10 @@ md"""
 # Development environments
 ## Pluto Notebooks
 
+- Open Pluto through the Julia terminal with "using Pluto", "Pluto.run()" and typing the path in the text box.
 - A Pluto cell can only contain one statement. If you want to include more than one (for example, when loading more than one package), you have to enclose the lines in 'begin' and 'end'
-- Embed Julia code in Markdown with string interpolation within your markdown call, i.e. $(1+1)
+- To write text, enclose it in md and three "s (i.e. multi-line string preceded with md for Markdown) -- you can use Markdown syntax like **bold**, *italics* and headers with hashtags.
+- Embed Julia code in Markdown with string interpolation within your markdown call with the dollar sign, i.e. $(1+1)
 - You can output a Pluto notebook as a notebook file, or static HTML/PDF
 
 ### DisplayAs & PlutoUI
@@ -71,6 +73,8 @@ md"""
 - PlutoUI allows you to add a table of contents: TableOfContents()
 
 ## VS Code
+- Install the Julia extension and (optionally) the R in Julia code highlighting extension 
+- Julia markdown files (.jmd) work like R-markdown files, with chunks of text in MD and in Julia, chunks are denoted with three backticks 
 - Ctrl/Cmd Enter runs one line, Alt Enter runs the logical block
 - create package environment with activate . (the dot means current location) and add packages to that location (the terminal line will show that name in the line)
 - you can then select the julia environment at the bottom line of VS code and it will launch Julia in that environment
@@ -278,7 +282,25 @@ Also look up: levels() for releveling
 """
 
 # ╔═╡ 71f77e0c-cd7f-4e51-821b-ed949692bde6
+md"""
+# LMM Theory
 
+## Orthogonal contrasts
+- Sequential difference, sum contrast and treatment constrast coding are not orthogonal because multiple levels contain the same information (i.e. level one of a sequential difference coding takes level 2 compared to level 1, whereas the second level takes level 3 compared to level 2)
+- Disadvantages of non-orthogonal contrasts: they are correlated in how they're constructed, so it's sometimes not possible to tell which factor level the variance is coming from -- this variance must then be discarded
+- Visual aid of a venn diagramm: orthogonal contrasts both overlap with the DV -- they explain separatable parts of the variance; non-orthogonal contrasts share variance with the DV but also with each other and this space where all three overlap (variance in the DV plus variance in more than one level of the contrasts) must be discarded. This discarding leads to a loss in statistical power.
+- The more levels of the predictor you have, i.e. the more indicator variables that come from your contrast coding, the more of these overlapping areas of variance you have that have to be discarded and thus the more power lost.
+- The variance described by orthogonal contrasts (by the indicator variables that represent the levels of the orthogonal contrasts) sums up to the R2, the variance described by the model. 
+
+"""
+
+# ╔═╡ a6c010dc-f52b-4027-af1f-6bd29671599b
+md"""
+
+# Defining LMM models in Julia
+- You can assign a column as a Grouping factor (in your contrasts Dict), which will speed up the computation because it tells the model to ignore that column when trying to create contrasts. This is useful for large datasets where there are a lot of levels of the grouping variables (i.e. 10,000 individuals)
+
+"""
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -954,5 +976,6 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─88a2208a-7c5e-4aa0-8751-503248363566
 # ╟─e75f102a-0fdb-4814-9316-0b33c5bf6824
 # ╠═71f77e0c-cd7f-4e51-821b-ed949692bde6
+# ╠═a6c010dc-f52b-4027-af1f-6bd29671599b
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
