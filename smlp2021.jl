@@ -50,6 +50,9 @@ md"""
 1. RK presents workflow in VS Code
 2. RK presents sports science example from MixedModelsTutorial_basics.jl
 3. DB presents participant data from /SMLP2021datasets/instructors/Dorothea_Pregla/analysis.jl
+4. Q & A with RK
+5. DB presents optimization with Julia v1.7 (using MLK) with SMLP2021datasets/instructors/Kyla_McConnell/speed.jl
+6. DB presents Arrow (and some wrangling) from SMLP2021/notebooks/Arrow.jl
 """
 
 # ╔═╡ 26c8a6dd-b56f-49ea-8e3d-277d95dbf997
