@@ -273,9 +273,12 @@ transform(df, :age => (col -> col .+ 1) => :ageplus);
 # ╔═╡ 4b68540c-8100-4bcf-b422-e9b2382309d1
 @transform(df, @c :age .- mean(:age));
 
-# ╔═╡ a404eca5-7261-46d0-9b63-f75b3e19277d
+# ╔═╡ f36c4d6b-b52e-40b3-8a47-989f1b34604b
 md"""
-- @c inside of the @transform macro means that its not rowwise (column flag c)
+### transform for z-scores
+@c inside of the @transform macro means that its not rowwise (column flag c)
+
+	@transform!(groupby(Score, :Test), :zScore = @c zscore(:score))
 """
 
 # ╔═╡ 00b8600c-db94-4db5-8f3a-79f82a7f3f11
@@ -292,6 +295,26 @@ end;
 
 # ╔═╡ c68f3f86-78d4-49c6-9652-1c0318c658ee
 summary_table
+
+# ╔═╡ a8f97764-8630-424b-a0fd-2f0188456891
+md"""
+### groupby & combine
+- Like group_by and summarize in R (I think!)
+- i.e. The following code will group by child and return the number of rows per child
+
+	combine(groupby(nobsChild, :n), nrow)
+
+"""
+
+# ╔═╡ f5f43e9f-2f2e-4328-90f7-63bdb0e82639
+md"""
+### parent()
+- Similar to ungroup in R-tidyverse
+- If you have a grouped dataframe, it takes away that grouping
+
+### first()
+- "Goes into" a grouped dataframe and returns only those rows that are in the first grouping, i.e. returns a new table of just those rows in the first grouping
+"""
 
 # ╔═╡ 09487ce8-1d61-47b3-b870-4502ef477c1e
 md"""
@@ -313,6 +336,37 @@ md"""
 	recode!(df, "Run" => "Endurance", "Star_r" => "Coordination")
 
 Also look up: levels() for releveling
+"""
+
+# ╔═╡ e0d02ece-bae5-4eb1-92ae-bbc6d71bdcc1
+md"""
+### joins
+The `disallowmissing!` will fail if missing values were created, so it works like a flag.
+
+	df1 = disallowmissing!(leftjoin(Score, Child1; on=:Child))
+"""
+
+# ╔═╡ 6109f2b5-6d05-4aeb-9e6e-e8838ffcc19a
+md"""
+### Other wrangling code 
+
+This one takes a summary table (nobsChild) of number of obs by participant and joins it back onto the main dataframe, so that each row shows the number of observations, then groups that dataframe by the number of observations
+
+	gdf = groupby(disallowmissing!(leftjoin(Child, nobsChild; on=:Child)), :n)
+	
+This one takes the first grouping (1 observation? Maybe? Depending on how it was done) and returns the gender distribution by number of rows
+
+	combine(groupby(first(gdf), :Sex), nrow => :n)
+"""
+
+# ╔═╡ b2caf12d-fc74-4e9d-a4ab-95410ade2ee5
+md""""
+# Plotting in Julia
+
+### Ridgeplot
+Not sure if this is the full code needed here or what data wrangling you have to do in advance to get grouped ridges / densities
+	ridgeplot(parent(gdf), :age, :n)
+
 """
 
 # ╔═╡ 71f77e0c-cd7f-4e51-821b-ed949692bde6
@@ -369,7 +423,23 @@ md"""
 # ╔═╡ b76330fa-3e94-4490-be78-d3de244fa68a
 md"""
 # Arrow data type
-- Language independent columnar memory format 
+### Benefits of Arrow
+- Language independent columnar memory format that is language independent (though called feather in R and Python)
+- Arrow is native to Julia 
+- CategoricalArrays doesn't work well with Pluto, so if you are having issues displaying data in Pluto, try to load in the data, save it in Arrow format, then read that Arrow-formatted data back in. 
+Example below, the path could be any, dfrm is the variable containing the R-data from `fn = Downloads.download("https://osf.io/xawdb/download?version=2");` and `dfrm = rcopy(R"readRDS($fn)")`
+
+	tbl = Arrow.Table(Arrow.write("./data/fggk21.arrow", dfrm; compress=:zstd))
+
+- Filesizes will be smaller / quicker to work with because it doesn't save some repeated information (?)
+- Read in an arrow file with `DataFrame(Arrow.Table("./data/fggk21_Score.arrow"))`
+- Because Arrow reads in data as a column, it can save the column type (incl. e.g. factor vs. string)
+- However, it is not human-readab
+
+### Arrow in R
+
+	library("arrow")
+	fggk21 <- read_feather("./data/fggk21.arrow")
 
 """
 
@@ -1101,17 +1171,22 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═d64e25c9-385e-4a74-af63-928f8a090049
 # ╠═67b2e0f5-041a-4eba-ad5f-ee4ce12d73db
 # ╠═4b68540c-8100-4bcf-b422-e9b2382309d1
-# ╟─a404eca5-7261-46d0-9b63-f75b3e19277d
+# ╟─f36c4d6b-b52e-40b3-8a47-989f1b34604b
 # ╟─00b8600c-db94-4db5-8f3a-79f82a7f3f11
 # ╠═5df54abb-d69a-4d7b-9e10-a03f07ae3903
 # ╠═c68f3f86-78d4-49c6-9652-1c0318c658ee
+# ╟─a8f97764-8630-424b-a0fd-2f0188456891
+# ╟─f5f43e9f-2f2e-4328-90f7-63bdb0e82639
 # ╟─09487ce8-1d61-47b3-b870-4502ef477c1e
 # ╟─88a2208a-7c5e-4aa0-8751-503248363566
 # ╟─e75f102a-0fdb-4814-9316-0b33c5bf6824
+# ╟─e0d02ece-bae5-4eb1-92ae-bbc6d71bdcc1
+# ╟─6109f2b5-6d05-4aeb-9e6e-e8838ffcc19a
+# ╟─b2caf12d-fc74-4e9d-a4ab-95410ade2ee5
 # ╠═71f77e0c-cd7f-4e51-821b-ed949692bde6
 # ╠═a6c010dc-f52b-4027-af1f-6bd29671599b
 # ╟─b6caa647-99de-4e36-920c-87b30566aed3
-# ╠═b76330fa-3e94-4490-be78-d3de244fa68a
+# ╟─b76330fa-3e94-4490-be78-d3de244fa68a
 # ╟─a6849926-fcb1-485f-b287-e187060a915d
 # ╠═e4096878-6523-4d2e-a382-5094fd064657
 # ╟─00000000-0000-0000-0000-000000000001
