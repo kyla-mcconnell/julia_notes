@@ -360,7 +360,7 @@ This one takes the first grouping (1 observation? Maybe? Depending on how it was
 """
 
 # ╔═╡ b2caf12d-fc74-4e9d-a4ab-95410ade2ee5
-md""""
+md"""
 # Plotting in Julia
 
 ### Ridgeplot
@@ -491,6 +491,14 @@ Available in MixedModelsTutorial_Basic (bottom of file)
 
 """
 
+# ╔═╡ 435d3c42-02e3-49a9-a91f-72c333be0771
+md"""
+# LME4 Tips
+- Always use REML = FALSE 
+- For singular fits, try adding "control = lmerControl(calc.derivs = FALSE)"
+
+"""
+
 # ╔═╡ e4096878-6523-4d2e-a382-5094fd064657
 md"""
 # Open questions 
@@ -499,7 +507,7 @@ md"""
 
 - How do you interpret caterpillar and shrinkage plots theoretically? What are you looking for to determine whether a term is adding to the fit? And what conclusions can you draw about your model from them?
 
-- How does CairoMakie/MixedModelsMakie work?
+- How does graphing in Julia / MixedModelsMakie work?
 
 """
 
@@ -1146,7 +1154,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─e8d16b19-e7b2-4836-8b4e-cc02e7730a3f
 # ╟─942a740d-77fe-4b95-8b5d-da0cff35e3a7
 # ╟─72d6b331-1fc6-4ff5-9720-b40cbcfc8135
-# ╠═f554e99e-1bbd-4693-824a-b2321275b10e
+# ╟─f554e99e-1bbd-4693-824a-b2321275b10e
 # ╟─e210b065-219c-4ec9-889f-3d738f69085a
 # ╠═a4c58af2-2bbd-4732-bf6a-2047555222ad
 # ╠═c46ea987-362a-48b6-acfa-23a94a4da3ce
@@ -1183,11 +1191,12 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─e0d02ece-bae5-4eb1-92ae-bbc6d71bdcc1
 # ╟─6109f2b5-6d05-4aeb-9e6e-e8838ffcc19a
 # ╟─b2caf12d-fc74-4e9d-a4ab-95410ade2ee5
-# ╠═71f77e0c-cd7f-4e51-821b-ed949692bde6
-# ╠═a6c010dc-f52b-4027-af1f-6bd29671599b
+# ╟─71f77e0c-cd7f-4e51-821b-ed949692bde6
+# ╟─a6c010dc-f52b-4027-af1f-6bd29671599b
 # ╟─b6caa647-99de-4e36-920c-87b30566aed3
 # ╟─b76330fa-3e94-4490-be78-d3de244fa68a
 # ╟─a6849926-fcb1-485f-b287-e187060a915d
-# ╠═e4096878-6523-4d2e-a382-5094fd064657
+# ╟─435d3c42-02e3-49a9-a91f-72c333be0771
+# ╟─e4096878-6523-4d2e-a382-5094fd064657
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
