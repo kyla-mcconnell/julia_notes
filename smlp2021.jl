@@ -56,6 +56,7 @@ md"""
 md"""
 # Julia basics
 
+- Ending a call in a semicolon (;) inhibits the output
 - To do an operation element-wise, i.e. on a vector, you have to broadcast with . 
 	array = [1, 2, 3]
 	sqrt.(array)
@@ -92,6 +93,8 @@ md"""
 md"""
 # Using R & Python
 ## RCall
+- Set up RCall: https://juliainterop.github.io/RCall.jl/stable/installation/
+
 - Macros @rget and @rput
 - JellyMe4 for lme4-like objects
 - To use R in-line in Julia, use the R string type: R" " (or with three " for multi-line strings)
@@ -120,6 +123,7 @@ md"""
 - Shrinkage plots: How much do the points reduce down towards zero -- if it clumps down to the origins, you might not need the random effects
 - If it's going down to a horizontal line, you might need the term on the x-axis (often the intercept) but not the term on the y-axis (which may be a slope)
 - Participants whose data fits a line very well (337 in sleep study data) don't have as much shrinkage becuase there's not as much room to wiggle the line around, whereas other participants may be shrunk more because their individual lines can be wiggled more without losing so much fit.
+- Shrinkage plot is almost entirely vertical lines -- this means that the random effect on the y-axis (condition here) is not adding much value to the model. 
 
 ## Zerocorr models
 - Leaving in a correlation term when its not needed (or otherwise having parameters in a model that aren't necessary) increases the risk of overfitting and adds a source of variability that is not necessary
@@ -319,19 +323,69 @@ md"""
 md"""
 
 # Defining LMM models in Julia
+
+### Grouping contrast
 - You can assign a column as a Grouping factor (in your contrasts Dict), which will speed up the computation because it tells the model to ignore that column when trying to create contrasts. This is useful for large datasets where there are a lot of levels of the grouping variables (i.e. 10,000 individuals)
+- Z-scoring a predictor within a grouping variable:
+	select!(groupby(dat,  :Test), :, :score => zscore => :zScore);
+
+### Singular fits
+- You can quickly check for overparametrized/degenerate models with issingular()
+	issingular(modelname)
+
+
+### Checking fit 
+- Make a manual table that includes AIC, AICc (not sure what that is!), and BIC. BIC is the most conservative.
+	mods = [m_ovi, m_zcp, m_cpx];
+	gof_summary = DataFrame(dof=dof.(mods), deviance=deviance.(mods),
+              AIC = aic.(mods), AICc = aicc.(mods), BIC = bic.(mods))
+
 
 """
 
 # ╔═╡ a6849926-fcb1-485f-b287-e187060a915d
 md"""
-# Insights from Pregla data
-- Some string manipulation, here starting with S, left-padding 0s of the number of digits of the maximum number. Here this was necessary because subject was read in as an integer.
+# Other Julia tips / wrangling
+
+### String manipulatiojn
+- Change numeric subject IDs to format (S00004, etc.): Starting with S, left-padding 0s of the number of digits of the maximum number. 
 	df.subj = string.('S', lpad.(df.subj, ndigits(maximum(df.subj)), '0'));
+
+### Variations on MixedModels fit fcalls
 - You can filter subsets of data within the MixedModel fit call: 
 	m1 = fit(MixedModel, formula,
 	filter(:region => ==("2"), df);
 	contrasts = cntrsts))
+
+### Summary tables
+- This could be rewritten with Chain and MixedModelMacros, but the idea is (1) cut the age column into 8 groups and select only the necessary columns, (2) group by age, sex and test, (3) take the mean of the z-score column and the age column and (4) return this summary table.
+	df = groupby(  
+	 combine(
+		groupby(
+			select(dat,
+				:age => (x -> cut(x, 8)) => :Age,
+				:Sex,
+				:Test,
+				:zScore,
+				:age
+			),
+			[:Age, :Sex, :Test]),
+		:zScore => mean => :zScore,
+		:age => mean => :ageM
+		),
+	:Test
+	);
+
+### Factor levels and labels
+	recode!(dat.Test,
+		"Endurance"  => "Run",
+		"Coordination" => "Star_r",
+	    "Speed" => "S20_r",
+		"PowerLOW" => "SLJ",
+		"PowerUP" => "BPT")
+
+	levels!(dat.Sex,  ["Girls", "Boys"])
+
 """
 
 # ╔═╡ e4096878-6523-4d2e-a382-5094fd064657
@@ -343,6 +397,10 @@ md"""
 - When would you consider removing correlation parameters from some but not all random effect terms?
 
 - How do you interpret caterpillar and shrinkage plots theoretically? What are you looking for to determine whether a term is adding to the fit? And what conclusions can you draw about your model from them?
+
+- How does CairoMakie/MixedModelsMakie work?
+
+- When do you used MixedModels.likelihoodratiotest vs. manually constructing a table of AIC/BIC values?
 
 """
 
@@ -989,7 +1047,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─e8d16b19-e7b2-4836-8b4e-cc02e7730a3f
 # ╠═942a740d-77fe-4b95-8b5d-da0cff35e3a7
 # ╟─72d6b331-1fc6-4ff5-9720-b40cbcfc8135
-# ╟─f554e99e-1bbd-4693-824a-b2321275b10e
+# ╠═f554e99e-1bbd-4693-824a-b2321275b10e
 # ╟─e210b065-219c-4ec9-889f-3d738f69085a
 # ╠═a4c58af2-2bbd-4732-bf6a-2047555222ad
 # ╠═c46ea987-362a-48b6-acfa-23a94a4da3ce
@@ -1022,7 +1080,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─88a2208a-7c5e-4aa0-8751-503248363566
 # ╟─e75f102a-0fdb-4814-9316-0b33c5bf6824
 # ╠═71f77e0c-cd7f-4e51-821b-ed949692bde6
-# ╟─a6c010dc-f52b-4027-af1f-6bd29671599b
+# ╠═a6c010dc-f52b-4027-af1f-6bd29671599b
 # ╠═a6849926-fcb1-485f-b287-e187060a915d
 # ╠═e4096878-6523-4d2e-a382-5094fd064657
 # ╟─00000000-0000-0000-0000-000000000001
