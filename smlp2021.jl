@@ -48,6 +48,8 @@ md"""
 	
 ### Day 2, 07.09.21
 1. RK presents workflow in VS Code
+2. RK presents sports science example from MixedModelsTutorial_basics.jl
+3. DB presents participant data from /SMLP2021datasets/instructors/Dorothea_Pregla/analysis.jl
 """
 
 # ╔═╡ 26c8a6dd-b56f-49ea-8e3d-277d95dbf997
@@ -55,8 +57,10 @@ md"""
 # Julia basics
 
 - To do an operation element-wise, i.e. on a vector, you have to broadcast with . 
-- Ex: array = [1, 2, 3]; sqrt.(array) or array .+ 2
-
+	array = [1, 2, 3]
+	sqrt.(array)
+	array .+ 2
+- "Symbols" are represented with a colon, ex. :subj, and are used within the MixedModels/DataFrames framework to represent column names 
 """
 
 # ╔═╡ e8d16b19-e7b2-4836-8b4e-cc02e7730a3f
@@ -307,8 +311,7 @@ md"""
 - ... (still need more info here)
 
 ## Comparing nested and non-nested models
-- ...
-- Create a zerocorr model and check the fit with likelihood tests
+- 
 
 """
 
@@ -320,6 +323,17 @@ md"""
 
 """
 
+# ╔═╡ a6849926-fcb1-485f-b287-e187060a915d
+md"""
+# Insights from Pregla data
+- Some string manipulation, here starting with S, left-padding 0s of the number of digits of the maximum number. Here this was necessary because subject was read in as an integer.
+	df.subj = string.('S', lpad.(df.subj, ndigits(maximum(df.subj)), '0'));
+- You can filter subsets of data within the MixedModel fit call: 
+	m1 = fit(MixedModel, formula,
+	filter(:region => ==("2"), df);
+	contrasts = cntrsts))
+"""
+
 # ╔═╡ e4096878-6523-4d2e-a382-5094fd064657
 md"""
 # Open questions 
@@ -327,6 +341,8 @@ md"""
 	- RKs paper: https://doi.org/10.3389/fpsyg.2010.00238
 
 - When would you consider removing correlation parameters from some but not all random effect terms?
+
+- How do you interpret caterpillar and shrinkage plots theoretically? What are you looking for to determine whether a term is adding to the fit? And what conclusions can you draw about your model from them?
 
 """
 
@@ -969,7 +985,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─3837e757-3676-419b-b443-7a55a3323a49
 # ╟─6594dafa-0ee3-11ec-2913-8124854ce8e6
 # ╟─1b153a84-7fc7-4cb6-abed-0ec2d3188aa3
-# ╟─26c8a6dd-b56f-49ea-8e3d-277d95dbf997
+# ╠═26c8a6dd-b56f-49ea-8e3d-277d95dbf997
 # ╟─e8d16b19-e7b2-4836-8b4e-cc02e7730a3f
 # ╠═942a740d-77fe-4b95-8b5d-da0cff35e3a7
 # ╟─72d6b331-1fc6-4ff5-9720-b40cbcfc8135
@@ -1007,6 +1023,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─e75f102a-0fdb-4814-9316-0b33c5bf6824
 # ╠═71f77e0c-cd7f-4e51-821b-ed949692bde6
 # ╟─a6c010dc-f52b-4027-af1f-6bd29671599b
+# ╠═a6849926-fcb1-485f-b287-e187060a915d
 # ╠═e4096878-6523-4d2e-a382-5094fd064657
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
