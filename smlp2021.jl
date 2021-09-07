@@ -33,7 +33,9 @@ end
 md"""
 # SMLP 2021 
 
-06.09.21 - 10.09.21
+Advanced Frequentist stream
+
+Taught by Reinhold Kliegl, Doug Bates & Phillip Alday
 """
 
 # ╔═╡ 1b153a84-7fc7-4cb6-abed-0ec2d3188aa3
@@ -189,6 +191,12 @@ md"""
 
 """
 
+# ╔═╡ 40bf7d9b-dddd-43b0-bab6-1eaaa01f640a
+md"""
+### @aside
+- Does an operation within a chain but does not keep sending it along the pipeline, i.e. for writing to disk in the middle of a pipeline
+"""
+
 # ╔═╡ 445c7416-91a3-4658-a99a-0a5645d933a4
 md"""
 ## Data Wrangling
@@ -252,12 +260,6 @@ end;
 
 # ╔═╡ c68f3f86-78d4-49c6-9652-1c0318c658ee
 summary_table
-
-# ╔═╡ 40bf7d9b-dddd-43b0-bab6-1eaaa01f640a
-md"""
-### @aside
-- Does an operation within a chain but does not keep sending it along the pipeline, i.e. for writing to disk in the middle of a pipeline
-"""
 
 # ╔═╡ 09487ce8-1d61-47b3-b870-4502ef477c1e
 md"""
@@ -959,6 +961,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─aa2645e2-c639-4114-aad2-88bf013293de
 # ╠═11661dcd-bfa8-43f7-95f7-3d8b03010bf7
 # ╟─6386d5a9-2d24-41af-a443-c21f04310e6a
+# ╟─40bf7d9b-dddd-43b0-bab6-1eaaa01f640a
 # ╟─445c7416-91a3-4658-a99a-0a5645d933a4
 # ╟─4389e77d-799c-497c-8015-c726938df571
 # ╠═3534eeee-7c4e-4280-9d74-339967dd49db
@@ -971,11 +974,10 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─00b8600c-db94-4db5-8f3a-79f82a7f3f11
 # ╠═5df54abb-d69a-4d7b-9e10-a03f07ae3903
 # ╠═c68f3f86-78d4-49c6-9652-1c0318c658ee
-# ╟─40bf7d9b-dddd-43b0-bab6-1eaaa01f640a
 # ╟─09487ce8-1d61-47b3-b870-4502ef477c1e
 # ╟─88a2208a-7c5e-4aa0-8751-503248363566
 # ╟─e75f102a-0fdb-4814-9316-0b33c5bf6824
-# ╠═71f77e0c-cd7f-4e51-821b-ed949692bde6
-# ╠═a6c010dc-f52b-4027-af1f-6bd29671599b
+# ╟─71f77e0c-cd7f-4e51-821b-ed949692bde6
+# ╟─a6c010dc-f52b-4027-af1f-6bd29671599b
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
