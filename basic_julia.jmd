@@ -1,0 +1,189 @@
+## What is Julia?
+- dyanmic typing -> Julia will choose the most appropriate type (unlike stactically typed languages)
+
+## Julia vs. R
+- In Julia, you can use Unicode characters in variable names, etc. 
+    - emjois, mathematical symbols
+- 1-based indexing, like R but unlike some other languages like Python
+
+
+## Installing Julia
+- Install: https://julialang.org
+- Open Julia application to see Julia in Terminal 
+
+## Julia in the terminal 
+- Type ] to enter the package manager 
+- From the package manager:
+    - 'add' to install a package
+    - 'update' to update a package 
+    - 'rm' to remove a package
+    - 'status' to see which packages you have loaded
+
+## Julia in Juptyer notebooks
+- Juptyer notebooks allow for text interspersed by interactive code chunks
+- One easy way to run Juptyer notebooks from your computer is via nteract, install here: https://nteract.io/
+- You also need the IJulia package (from the package manager, add IJulia)
+- May need to change the kernel from Runtime in the top menu
+- Installation video here: https://www.youtube.com/watch?v=Yx9krfmUGzQ
+
+## Basic Julia
+- println(): prints line
+- assign variables with = 
+- typeof(): gives variable type (Int64, Float64, String, etc.)
+- convert(Float64, 3): changes variable type
+    -parse() for parsing strings to numbers and vice versa
+- #: comment
+- #= =#: multi-line comment
+- basic math symbols as expected (+, -, /, *, ^, %)
+
+## Strings
+- Define strings with " " or """ """ 
+- Define characters (char) with ' ' 
+- String interpolation with $ 
+    - define the variable
+    - Call $varname inside of the string
+    - Ex: name = "Kyla"
+          println("Hello, my name is $name.")
+    - Do operations on concatenated variables: $(varname + varname)
+- string(): convert to string and concatenate strings
+- *: to concatenate strings
+    - Ex: varname * varname 
+
+## Tuples
+- ordered & immutable, so can be indexed but not updated or changed
+- (item1, item2, ...)
+- NamedTuples:
+    - (name1 = item1, name2 = item2, ...)
+    - can then be indexed by name by tuplename.itemname
+
+## Dictionaries
+- key-value pairs, mutable
+- not ordered, so can't be indexed
+- Dict(key1 => value1, key2 => value2, ...)
+    - dictionaries can either be a set type, i.e. accept only strings, or of Any type, and accept any combination
+    - to specify what types should be allowed for keys and values: Dict{String,Int32}("A"=>1, "B"=>2).
+- extract value: dictname["keyname"]
+- add to dict: dictname["newkey"] = "newvalue"
+- grab value and remove from dict: pop!(dictname, "key")
+- you can check if a dictionary contains a key with haskey(dictname, "keyname")
+
+## Arrays
+- mutable & ordered, can be indexed
+- [item1, item2, ...]
+- can be different item types, ex: [1, 1, 2, 3, "Ted", "Robyn"]
+- can be edited via indexing, ex: myfriends[3] = "Baby Bop"
+- push!(arrayname, "item"): adds item to end of array
+- pop!(arrayname): removes final element in the array
+- arrays can be multidimensional: 
+    - favorites = [["koobideh", "chocolate", "eggs"],["penguins", "cats", "sugargliders"]]
+- when you copy arrays (i.e. assign it to a different varaible name), changing the copy also changes the original array (it's not a separate copy -- it's just another way to access the original array)
+    - if you want a true copy that you can change without editing the original, use copy(), ex: somemorenumbers = copy(fibonacci)
+
+## While loops
+- while n < 10
+    n += 1
+    println(n)
+end
+- begins with while + condition, then comes the actions, then end
+
+## For loops
+- for n in 1:10
+    println(n)
+end
+- You can also replace the 'in' with = 
+- Condense nested for loops from: 
+    for j in 1:n
+        for i in 1:m
+            A[i, j] = i + j
+        end
+    end
+- to: 
+    for j in 1:n, i in 1:m
+        A[i, j] = i + j
+    end
+- Or use an array comprehension: 
+    A = [i + j for i in 1:m, j in 1:n]
+- Note that in the first two ways, you would have to first initialize an appropriately sized array full of 0s
+    - Ex: m, n = 5, 5
+          A = fill(0, (m, n))
+
+## if-statements
+- if *condition 1*
+      *option 1*
+  elseif *condition 2*
+      *option 2*
+  else
+      *option 3*
+  end
+- ternary operators allow for a simple if-else on one line:
+    a ? b : c
+    equates to: 
+    if a
+       b
+    else
+       c
+    end
+    - ex: (x > y) ? x : y
+        - will print x if the statement is true or y is if it not true
+    - must be spaced correctly
+    - ex 2: (N/2 == 0) ? N : println("odd")
+- short-circuit evaluation:
+    (x > 0) && println("x is greater than 0")
+    will print the line only if the statement before is true (both have to be true)
+    - You can use this to put more complicated expressions in the second position, or print statements, because Julia will stop as soon as it gets a false
+    - also works with or with || but then only one of the statements has to be true
+    - In this case, it will perform the second part only if the first statement is false
+
+## Functions
+- You can start a function with "function" and end with "end", ex:
+function sayhi(name):
+    println("Hi $name!")
+end
+- You can then call it:
+sayhi("Kyla")
+- But you can also declare a function on a single line:
+sayhi(name) = println("Hi $name!")
+- Or as an anonymous/lambda function:
+sayhi = name -> println("Hi $name!")
+- Julia uses duck-typing (if it walks like a duck and talks like a duck...): 
+    It will take function inputs that are not expected as long as there is a well-defined way to deal with them
+- Mutating vs. non-mutating functions:
+    - mutating functions are followed by the bang ! by convention
+    - ex: sort vs. sort! -> sort doesn't change the variable it's called on but sort! does
+
+## Broadcasting
+- denoted with a . between function name and arguments ex: f.()
+    - alternative syntax: broadcast(f, -input-)
+- if a function is broadcasting, if you pass it an array, it'll take out each element individually and do the operations on iterate
+- You can also use map() and an anonymous function 
+    ex: 
+map(x -> x^3, [1, 2, 3])
+Will cube each element individually
+
+## Packages
+- Add a package in the package view (entered with [) 
+- Then load it with using ... on each script
+
+## plots.jl
+- First, load the Plots package with using Plots
+- To layer multiple plots, add the bang ! to the second one, ex:
+plot(x, y, label="line")  
+scatter!(x, y, label="points") 
+- You can also change the backend
+plotlyjs()
+- Add labels with:
+xlabel!()
+ylabel!()
+title!()
+- Create a grid of subplots:
+Store the plots to variable names
+plot(name1, name2, name3, name4, layout=(2,2), legend = false)
+
+## Multiple dispatch
+- Julia can take multiple input arguments of different types and decide which function operations to apply based on object type
+- methods() shows the different methods based on object type
+- @which written before the function call tells which method is being applied
+- You can also define different versions of a function based on what the input is
+f(x) = println("This is the default version of this function")
+f(x::Int) = println("x is an integer")
+f(x::String) = println("x is a string")
