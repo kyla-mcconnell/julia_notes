@@ -118,12 +118,29 @@ md"""
 ## Caterpillar plots
 - Caterpillar plots visualize the correlation between random slopes and random intercepts
 - Caterpillar plots tell you if you have a lot of variation in the subjects -> if everything is very consistent, you might not need that term
+	caterpillar!(modelname, orderby=1)
+
+	cm_m1_chrt = ranefinfo(m1)[:Cohort];
+	caterpillar!(Figure(; resolution=(800,400)), cm_m1_chrt; orderby=1)
+
+	cm_m1_schl = ranefinfo(m1)[:School];  
+	caterpillar!(Figure(; resolution=(800,800)), cm_m1_schl; orderby=1)
+
+	caterpillar(m1, :item)
+
+- Note on syntax: for the ! method, you have to supply the figure (Which is then 'modified' by adding the plot). For the non mutating variant, a default figure is generated. The advantage to creating the fig ahead of time is that you can sepcify the resolution
+- There is also qqcaterpillar, which is easier to read with more levels, because it sorts and labels along the vertical axis.
 
 ## Shrinkage plots
-- Shrinkage plots: How much do the points reduce down towards zero -- if it clumps down to the origins, you might not need the random effects
-- If it's going down to a horizontal line, you might need the term on the x-axis (often the intercept) but not the term on the y-axis (which may be a slope)
+- Shrinkage plots: How much do the points reduce down towards zero -- if it clumps down to the origin, you might not need the random effects
+- If it's going down to a horizontal line, you might need the term on the x-axis (often the intercept, though not necessarily) but not the term on the y-axis (which may be a slope)
 - Participants whose data fits a line very well (337 in sleep study data) don't have as much shrinkage becuase there's not as much room to wiggle the line around, whereas other participants may be shrunk more because their individual lines can be wiggled more without losing so much fit.
-- Shrinkage plot is almost entirely vertical lines -- this means that the random effect on the y-axis (condition here) is not adding much value to the model. 
+- Example: Shrinkage plot is almost entirely vertical lines -- this means that the random effect on the y-axis (condition here) is not adding much value to the model. 
+	shrinkage!(modelname)
+
+	shrinkageplot!(Figure(; resolution=(800,800)), m1, :Cohort)
+
+	shrinkageplot!(Figure(; resolution=(800,800)), m1, :School)
 
 ## Zerocorr models
 - Leaving in a correlation term when its not needed (or otherwise having parameters in a model that aren't necessary) increases the risk of overfitting and adds a source of variability that is not necessary
@@ -314,9 +331,6 @@ md"""
 - With non-orthogonal coding schemes, watch for if the levels/indicator variables are (negatively) artefactually correlated, because the same underlying levels are in multiple comparisons/levels (ex of star run -- either it's closer to endurance, in which case it will negatively correlate with the difference to sprint speed, or vice versa). 
 - ... (still need more info here)
 
-## Comparing nested and non-nested models
-- 
-
 """
 
 # ╔═╡ a6c010dc-f52b-4027-af1f-6bd29671599b
@@ -334,13 +348,13 @@ md"""
 	issingular(modelname)
 
 
-### Checking fit 
+### Model comparison
 - Make a manual table that includes AIC, AICc (not sure what that is!), and BIC. BIC is the most conservative.
 	mods = [m_ovi, m_zcp, m_cpx];
 	gof_summary = DataFrame(dof=dof.(mods), deviance=deviance.(mods),
               AIC = aic.(mods), AICc = aicc.(mods), BIC = bic.(mods))
-
-
+- Or use the MixedModel likelihood ratio test
+	MixedModels.likelihoodratiotest(m_zcpCohort_2, m_zcpCohort, m_cpxCohort)
 """
 
 # ╔═╡ a6849926-fcb1-485f-b287-e187060a915d
@@ -386,6 +400,9 @@ md"""
 
 	levels!(dat.Sex,  ["Girls", "Boys"])
 
+### Glossary
+Available in MixedModelsTutorial_Basic (bottom of file)
+
 """
 
 # ╔═╡ e4096878-6523-4d2e-a382-5094fd064657
@@ -394,13 +411,9 @@ md"""
 - How do you interpret correlation of random effects? In general, what does it mean if you have a strong correlation between random effects. And if you bootstrap to find the coverage interval, when would this be significant and when would the range be too wide (i.e. if the range is (.2 - .5) vs. (.1 - .9). 
 	- RKs paper: https://doi.org/10.3389/fpsyg.2010.00238
 
-- When would you consider removing correlation parameters from some but not all random effect terms?
-
 - How do you interpret caterpillar and shrinkage plots theoretically? What are you looking for to determine whether a term is adding to the fit? And what conclusions can you draw about your model from them?
 
 - How does CairoMakie/MixedModelsMakie work?
-
-- When do you used MixedModels.likelihoodratiotest vs. manually constructing a table of AIC/BIC values?
 
 """
 
