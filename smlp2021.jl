@@ -36,17 +36,21 @@ md"""
 06.09.21 - 10.09.21
 """
 
-# ╔═╡ 88668672-0d07-4dcb-9cb4-4ebff798b664
-md""" 
-# Day 1, 06.09.21
-
-!!! note "Files used today: sleepstudy.jl, julius_tutorial.jl, MixedModelsTutorial_basics.jl"
-
+# ╔═╡ 1b153a84-7fc7-4cb6-abed-0ec2d3188aa3
+md"""
+### Day 1, 06.09.21
+1. Doug Bates (DB) presents sleepstudy.jl as full example of LMM workflow, incl. zerocorr models, caterpillar & shrinkage plots, geomdof, etc. 
+2. Julius Krumbiegel shows the DataFramesMacro & Chain packages for data wrangling in Julia 
+3. Reinhold Kliegl (RK) presents MixedModelsTutorial_basics.jl as workflow example on larger dataset (sport science paper)
+	
+	
+### Day 2, 07.09.21
+1. RK presents workflow in VS Code
 """
 
 # ╔═╡ 26c8a6dd-b56f-49ea-8e3d-277d95dbf997
 md"""
-## Julia basics
+# Julia basics
 
 - To do an operation element-wise, i.e. on a vector, you have to broadcast with . 
 - Ex: array = [1, 2, 3]; sqrt.(array) or array .+ 2
@@ -55,6 +59,7 @@ md"""
 
 # ╔═╡ e8d16b19-e7b2-4836-8b4e-cc02e7730a3f
 md"""
+# Development environments
 ## Pluto Notebooks
 
 - A Pluto cell can only contain one statement. If you want to include more than one (for example, when loading more than one package), you have to enclose the lines in 'begin' and 'end'
@@ -75,34 +80,34 @@ md"""
 
 # ╔═╡ f554e99e-1bbd-4693-824a-b2321275b10e
 md"""
-## LMM basics: sleepstudy.jl
+# LMM basics
 
 - Standard deviation in the LMM output is in the same scale / unit as the response variable. (Square root of the variance.) 
 
-### Caterpillar plots
+## Caterpillar plots
 - Caterpillar plots visualize the correlation between random slopes and random intercepts
 - Caterpillar plots tell you if you have a lot of variation in the subjects -> if everything is very consistent, you might not need that term
 
-### Shrinkage plots
+## Shrinkage plots
 - Shrinkage plots: How much do the points reduce down towards zero -- if it clumps down to the origins, you might not need the random effects
 - If it's going down to a horizontal line, you might need the term on the x-axis (often the intercept) but not the term on the y-axis (which may be a slope)
 - Participants whose data fits a line very well (337 in sleep study data) don't have as much shrinkage becuase there's not as much room to wiggle the line around, whereas other participants may be shrunk more because their individual lines can be wiggled more without losing so much fit.
 
-### Zerocorr models
+## Zerocorr models
 - Leaving in a correlation term when its not needed (or otherwise having parameters in a model that aren't necessary) increases the risk of overfitting and adds a source of variability that is not necessary
 
-### Bootstrapping
+## Bootstrapping
 - Bootstrapping assumes the model is true, generates data and then checks where the values fall. So we assume that the model values are true, and generate data from these, then model these new datasets and extract the parameter values and see the range in which they fall
 - Shortest coverage interval shows the most dense (smallest base) interval with 95% of the data, so you can see what range of values 
 - Sleepstudy example: See how the range of the correlation term goes from -.4 to 1.0, so you can see that a zero corr model may be better.
 
-### geomdof
+## geomdof
 - Geometric degrees of freedom: goes beyond just checking how many parameters are in a model -- sometimes removing one term may actually add more DoF / variance 
 """
 
 # ╔═╡ e210b065-219c-4ec9-889f-3d738f69085a
 md"""
-## Basic example LMM: Sleepstudy
+# Example LMM: Sleepstudy
 """
 
 # ╔═╡ c46ea987-362a-48b6-acfa-23a94a4da3ce
@@ -136,7 +141,7 @@ md"""
 
 # ╔═╡ f9c68d4a-f141-43ad-8267-5fd3178fdde1
 md"""
-## DataFramesMacro
+# DataFramesMacro
 
 -  presentation by Julius Krumbiegel, contributor to Chain and DataFramesMacro
 
@@ -154,7 +159,7 @@ df = url |>
 # ╔═╡ aa2645e2-c639-4114-aad2-88bf013293de
 md"""
 
-### Chain
+## Chain
 - You can use the inline pipe |> when the item before can be taken as the first argument and you don't need additional arguments
 - To do that, you could make an anonymous function as a step in the pipeline
 	x -> CSV.write("test.csv", x)
@@ -182,7 +187,7 @@ md"""
 
 # ╔═╡ 445c7416-91a3-4658-a99a-0a5645d933a4
 md"""
-### Data Wrangling:
+## Data Wrangling
 - transform (= mutate)
 - select (= select)
 - groupby (= group_by)
@@ -253,7 +258,8 @@ md"""
 # ╔═╡ 09487ce8-1d61-47b3-b870-4502ef477c1e
 md"""
 ### @transform vs transform
-the transform macro automatically does operations rowwise, whereas if you use transform you have to use ByRow and an anonymous function or broadcast function
+- i.e. the advantages of DataFrameMacros
+- (roughly) the transform macro automatically does operations rowwise, whereas if you use transform you have to use ByRow and an anonymous function or broadcast function
 """
 
 # ╔═╡ 88a2208a-7c5e-4aa0-8751-503248363566
@@ -270,6 +276,9 @@ md"""
 
 Also look up: levels() for releveling
 """
+
+# ╔═╡ 71f77e0c-cd7f-4e51-821b-ed949692bde6
+
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -907,9 +916,9 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 """
 
 # ╔═╡ Cell order:
-# ╟─6594dafa-0ee3-11ec-2913-8124854ce8e6
 # ╟─3837e757-3676-419b-b443-7a55a3323a49
-# ╟─88668672-0d07-4dcb-9cb4-4ebff798b664
+# ╟─6594dafa-0ee3-11ec-2913-8124854ce8e6
+# ╟─1b153a84-7fc7-4cb6-abed-0ec2d3188aa3
 # ╟─26c8a6dd-b56f-49ea-8e3d-277d95dbf997
 # ╟─e8d16b19-e7b2-4836-8b4e-cc02e7730a3f
 # ╟─f554e99e-1bbd-4693-824a-b2321275b10e
@@ -944,5 +953,6 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─09487ce8-1d61-47b3-b870-4502ef477c1e
 # ╟─88a2208a-7c5e-4aa0-8751-503248363566
 # ╟─e75f102a-0fdb-4814-9316-0b33c5bf6824
+# ╠═71f77e0c-cd7f-4e51-821b-ed949692bde6
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
