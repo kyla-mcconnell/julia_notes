@@ -84,6 +84,24 @@ md"""
 
 """
 
+# ╔═╡ 942a740d-77fe-4b95-8b5d-da0cff35e3a7
+md"""
+# Using R & Python
+## RCall
+- Macros @rget and @rput
+- JellyMe4 for lme4-like objects
+- To use R in-line in Julia, use the R string type: R" " (or with three " for multi-line strings)
+"""
+
+# ╔═╡ 72d6b331-1fc6-4ff5-9720-b40cbcfc8135
+md"""
+## PyCall
+- pymulti = @pyimport multiprocessing
+- pymulti.Worker (or whatever from that package)
+- You can also do Python in strings: py" "
+- There's also a wrapper for calling EEG package mne in Julia
+"""
+
 # ╔═╡ f554e99e-1bbd-4693-824a-b2321275b10e
 md"""
 # LMM basics
@@ -119,39 +137,20 @@ md"""
 # ╔═╡ c46ea987-362a-48b6-acfa-23a94a4da3ce
 sleepstudy = MixedModels.dataset("sleepstudy")
 
+# ╔═╡ ee87653a-3f2c-498a-a9f6-8b126956ac8c
+md"## Basic model"
+
 # ╔═╡ 7abaeca2-1438-454a-902e-e019489d8585
 m = fit(MixedModel, @formula(reaction ~ days + (1|subj)), sleepstudy)
 
 # ╔═╡ e81ef784-5858-4803-97e6-099396ebd081
 VarCorr(m)
 
+# ╔═╡ fc3b33c6-d86c-481a-84a7-4cf71120924c
+md"## Zerocorr model"
+
 # ╔═╡ d7cd2822-2a13-42d8-82f8-e82dafe36fe0
 m2 = fit(MixedModel, @formula(reaction ~ 1+days+zerocorr(1+days|subj)), sleepstudy)
-
-# ╔═╡ 942a740d-77fe-4b95-8b5d-da0cff35e3a7
-md"""
-## RCall
-- Macros @rget and @rput
-- JellyMe4 for lme4-like objects
-- To use R in-line in Julia, use the R string type: R" " (or with three " for multi-line strings)
-"""
-
-# ╔═╡ 72d6b331-1fc6-4ff5-9720-b40cbcfc8135
-md"""
-## PyCall
-- pymulti = @pyimport multiprocessing
-- pymulti.Worker (or whatever from that package)
-- You can also do Python in strings: py" "
-- There's also a wrapper for calling EEG package mne in Julia
-"""
-
-# ╔═╡ f9c68d4a-f141-43ad-8267-5fd3178fdde1
-md"""
-# DataFramesMacro
-
--  presentation by Julius Krumbiegel, contributor to Chain and DataFramesMacro
-
-"""
 
 # ╔═╡ 5392e206-968b-48f3-a7be-6ba91bdca7a0
 url = "https://github.com/RePsychLing/SMLP2021/raw/main/notebooks/data/fggk21.arrow"
@@ -161,16 +160,6 @@ df = url |>
 	Downloads.download |>
 	Arrow.Table |>
 	DataFrame;
-
-# ╔═╡ aa2645e2-c639-4114-aad2-88bf013293de
-md"""
-
-## Chain
-- You can use the inline pipe |> when the item before can be taken as the first argument and you don't need additional arguments
-- To do that, you could make an anonymous function as a step in the pipeline
-	x -> CSV.write("test.csv", x)
-- The chain package fixes this problem: 
-"""
 
 # ╔═╡ 11661dcd-bfa8-43f7-95f7-3d8b03010bf7
 df2 = @chain url begin
@@ -189,6 +178,24 @@ md"""
 	DataFrame
 	CSV.write("test.csv", _)
 
+"""
+
+# ╔═╡ f9c68d4a-f141-43ad-8267-5fd3178fdde1
+md"""
+# DataFramesMacro
+
+-  presentation by Julius Krumbiegel, contributor to Chain and DataFramesMacro
+
+"""
+
+# ╔═╡ aa2645e2-c639-4114-aad2-88bf013293de
+md"""
+
+## Chain
+- You can use the inline pipe |> when the item before can be taken as the first argument and you don't need additional arguments
+- To do that, you could make an anonymous function as a step in the pipeline
+	x -> CSV.write("test.csv", x)
+- The chain package fixes this problem: 
 """
 
 # ╔═╡ 40bf7d9b-dddd-43b0-bab6-1eaaa01f640a
@@ -294,6 +301,15 @@ md"""
 - The more levels of the predictor you have, i.e. the more indicator variables that come from your contrast coding, the more of these overlapping areas of variance you have that have to be discarded and thus the more power lost.
 - The variance described by orthogonal contrasts (by the indicator variables that represent the levels of the orthogonal contrasts) sums up to the R2, the variance described by the model. 
 
+## Correlation parameters
+- Correlations between random effects show not "does a kid who runs fast also jump high", that would be at the level of the data. 
+- With non-orthogonal coding schemes, watch for if the levels/indicator variables are (negatively) artefactually correlated, because the same underlying levels are in multiple comparisons/levels (ex of star run -- either it's closer to endurance, in which case it will negatively correlate with the difference to sprint speed, or vice versa). 
+- ... (still need more info here)
+
+## Comparing nested and non-nested models
+- ...
+- Create a zerocorr model and check the fit with likelihood tests
+
 """
 
 # ╔═╡ a6c010dc-f52b-4027-af1f-6bd29671599b
@@ -301,6 +317,16 @@ md"""
 
 # Defining LMM models in Julia
 - You can assign a column as a Grouping factor (in your contrasts Dict), which will speed up the computation because it tells the model to ignore that column when trying to create contrasts. This is useful for large datasets where there are a lot of levels of the grouping variables (i.e. 10,000 individuals)
+
+"""
+
+# ╔═╡ e4096878-6523-4d2e-a382-5094fd064657
+md"""
+# Open questions 
+- How do you interpret correlation of random effects? In general, what does it mean if you have a strong correlation between random effects. And if you bootstrap to find the coverage interval, when would this be significant and when would the range be too wide (i.e. if the range is (.2 - .5) vs. (.1 - .9). 
+	- RKs paper: https://doi.org/10.3389/fpsyg.2010.00238
+
+- When would you consider removing correlation parameters from some but not all random effect terms?
 
 """
 
@@ -945,22 +971,24 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─1b153a84-7fc7-4cb6-abed-0ec2d3188aa3
 # ╟─26c8a6dd-b56f-49ea-8e3d-277d95dbf997
 # ╟─e8d16b19-e7b2-4836-8b4e-cc02e7730a3f
+# ╠═942a740d-77fe-4b95-8b5d-da0cff35e3a7
+# ╟─72d6b331-1fc6-4ff5-9720-b40cbcfc8135
 # ╟─f554e99e-1bbd-4693-824a-b2321275b10e
 # ╟─e210b065-219c-4ec9-889f-3d738f69085a
 # ╠═a4c58af2-2bbd-4732-bf6a-2047555222ad
 # ╠═c46ea987-362a-48b6-acfa-23a94a4da3ce
+# ╟─ee87653a-3f2c-498a-a9f6-8b126956ac8c
 # ╠═7abaeca2-1438-454a-902e-e019489d8585
 # ╠═e81ef784-5858-4803-97e6-099396ebd081
+# ╟─fc3b33c6-d86c-481a-84a7-4cf71120924c
 # ╠═d7cd2822-2a13-42d8-82f8-e82dafe36fe0
-# ╟─942a740d-77fe-4b95-8b5d-da0cff35e3a7
-# ╟─72d6b331-1fc6-4ff5-9720-b40cbcfc8135
-# ╟─f9c68d4a-f141-43ad-8267-5fd3178fdde1
 # ╠═c6823866-89ae-4968-a54a-f2e94a5170eb
 # ╠═5392e206-968b-48f3-a7be-6ba91bdca7a0
 # ╠═e5c5583b-eb65-496e-9805-b7c8da218838
-# ╟─aa2645e2-c639-4114-aad2-88bf013293de
 # ╠═11661dcd-bfa8-43f7-95f7-3d8b03010bf7
 # ╟─6386d5a9-2d24-41af-a443-c21f04310e6a
+# ╟─f9c68d4a-f141-43ad-8267-5fd3178fdde1
+# ╟─aa2645e2-c639-4114-aad2-88bf013293de
 # ╟─40bf7d9b-dddd-43b0-bab6-1eaaa01f640a
 # ╟─445c7416-91a3-4658-a99a-0a5645d933a4
 # ╟─4389e77d-799c-497c-8015-c726938df571
@@ -977,7 +1005,8 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─09487ce8-1d61-47b3-b870-4502ef477c1e
 # ╟─88a2208a-7c5e-4aa0-8751-503248363566
 # ╟─e75f102a-0fdb-4814-9316-0b33c5bf6824
-# ╟─71f77e0c-cd7f-4e51-821b-ed949692bde6
+# ╠═71f77e0c-cd7f-4e51-821b-ed949692bde6
 # ╟─a6c010dc-f52b-4027-af1f-6bd29671599b
+# ╠═e4096878-6523-4d2e-a382-5094fd064657
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
