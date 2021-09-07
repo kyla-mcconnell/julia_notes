@@ -357,15 +357,31 @@ md"""
 	MixedModels.likelihoodratiotest(m_zcpCohort_2, m_zcpCohort, m_cpxCohort)
 """
 
+# ╔═╡ b6caa647-99de-4e36-920c-87b30566aed3
+md"""
+# Julia 1.7.0 & MixedModels
+- Julia v1.6 used OpenBLAS (Basic Linear Algebra Subroutines), but Intel has optimized linear algebra processes called MKL (Math Kernel Library), which works especially well on Intel CPUs
+- Switching to Julia v1.7 saves some time fitting LMMs on Intel processors
+- But, adding `using MKL` speeds up the fit significantly, though it can also change the optimum slightly (because of floating point operations in computation). This can even make it twice as fast.
+- See example: https://github.com/RePsychLing/SMLP2021datasets/blob/main/instructors/Kyla_McConnell/speed.md
+"""
+
+# ╔═╡ b76330fa-3e94-4490-be78-d3de244fa68a
+md"""
+# Arrow data type
+- Language independent columnar memory format 
+
+"""
+
 # ╔═╡ a6849926-fcb1-485f-b287-e187060a915d
 md"""
 # Other Julia tips / wrangling
 
-### String manipulatiojn
+### String manipulation
 - Change numeric subject IDs to format (S00004, etc.): Starting with S, left-padding 0s of the number of digits of the maximum number. 
 	df.subj = string.('S', lpad.(df.subj, ndigits(maximum(df.subj)), '0'));
 
-### Variations on MixedModels fit fcalls
+### Variations on MixedModels fit calls
 - You can filter subsets of data within the MixedModel fit call: 
 	m1 = fit(MixedModel, formula,
 	filter(:region => ==("2"), df);
@@ -1056,9 +1072,9 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─3837e757-3676-419b-b443-7a55a3323a49
 # ╟─6594dafa-0ee3-11ec-2913-8124854ce8e6
 # ╟─1b153a84-7fc7-4cb6-abed-0ec2d3188aa3
-# ╠═26c8a6dd-b56f-49ea-8e3d-277d95dbf997
+# ╟─26c8a6dd-b56f-49ea-8e3d-277d95dbf997
 # ╟─e8d16b19-e7b2-4836-8b4e-cc02e7730a3f
-# ╠═942a740d-77fe-4b95-8b5d-da0cff35e3a7
+# ╟─942a740d-77fe-4b95-8b5d-da0cff35e3a7
 # ╟─72d6b331-1fc6-4ff5-9720-b40cbcfc8135
 # ╠═f554e99e-1bbd-4693-824a-b2321275b10e
 # ╟─e210b065-219c-4ec9-889f-3d738f69085a
@@ -1094,7 +1110,9 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─e75f102a-0fdb-4814-9316-0b33c5bf6824
 # ╠═71f77e0c-cd7f-4e51-821b-ed949692bde6
 # ╠═a6c010dc-f52b-4027-af1f-6bd29671599b
-# ╠═a6849926-fcb1-485f-b287-e187060a915d
+# ╟─b6caa647-99de-4e36-920c-87b30566aed3
+# ╠═b76330fa-3e94-4490-be78-d3de244fa68a
+# ╟─a6849926-fcb1-485f-b287-e187060a915d
 # ╠═e4096878-6523-4d2e-a382-5094fd064657
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
