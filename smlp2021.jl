@@ -388,6 +388,41 @@ md"""
 - With non-orthogonal coding schemes, watch for if the levels/indicator variables are (negatively) artefactually correlated, because the same underlying levels are in multiple comparisons/levels (ex of star run -- either it's closer to endurance, in which case it will negatively correlate with the difference to sprint speed, or vice versa). 
 - ... (still need more info here)
 
+## R-squared 
+- Trying to extend the R-squared to a mixed model is not possible, since it's based on the Pearsons correlation coefficient, which has no concept of variance by random factors
+- R-squared is often viewed as "variation explained" but it's unclear what that would mean in a mixed model
+- Alternatives: Fitted vs. observed plot, looking at what your model is and is not capturing 
+- Standardized effect sizes are not necessary or useful in this context
+- There exist packages for R2 for LMMs but they do not behave how you would expect / it doesnt have the same implications
+
+## Contrast coding
+- Prepring by Alday & Brehm "A decade of mixed models: It’s past time to set your contrasts"
+
+## A priori vs. post-hoc contasts
+- ?
+
+## Singular fits 
+- Ellipse collaspes into a line (like a wire is 3d but you consider it to be 1d for all practical purposes)
+- More complexity in model specification than justified by your data 
+- There may be variation in subjects/items/random effects, but it's so minor that it's not really relevant to distinguish it from the noise (indistinguishable from the residual variation)
+- PA: For mixed models, its not just the number of observations, but also the number of participants and the number of items -> even if you have a lot of measurements, if you dont have many levels of the random effects then it gets difficult to estimate them
+- PA: Having more trials per participants does help in some way, because it helps you define that participant well, but if you have few participants, it's still difficult -- so there's not a clear answer / perfect rule on which to increase first (items or participant), you should try to get as many people and items as possible but possible is ofc subjective. "It's not always possible to make the inferences we want based on the data we have, and just because we have spent time/money getting the data doesn't mean that we can make the inferences we want to make, and statistics won't save you there." So sometimes we have to accept uncertainty.
+- At least one of the random effect terms' SD has gone to 0, or one of the correlation terms has gone to +1 or -1 (so they perfectly predict each other according to the model), aka at least dimension is redundant
+- Example of a very strong correlation within subject of starting high in assessment leading to a small increase in assessment at a later time point vs. starting low correlating with a strong increase at the later time point (ex of children's development
+- So the variance can be described in less dimensions than you've given
+
+### Optimizer
+- BobyQA is the default in MixedModels.jl and lme4, and works better than the others, see vizfit.jl for a visualization (but the visualization is a singular fit, you'll see the theta estimates / random effects parameters collapse to 0 in the second panel with green/orange lines)
+- How many iterations are too many? This could become relevant when doing simulations, for example. You often reach a close guess at the estimates around 300 iterations, but you only know for sure if that's true / if you're actually close if you continue to run. 
+- There is also scale sensitivity: with large datasets, you're more able to detect when you're "off just a little bit"
+- In Julia, each iteration takes far less time, so we can typically let it run and not have to set a maximum number of iterations
+- There is the option of a maximum amount of time or max amount of iterations before just stopping the fitting process -- not generally a super great idea but it's available of option
+- Premature stopping risks not having an ideal solution -- might be fine for power analysis but not other things
+- Other visualization in vizfit.jl shows the SDs by random effects which vary between 1 and 0 where 0 is the residual SD (artificial scale Cholesky.. ??), and the rhos that show the correlation terms between -1 and 1. Basically it shows that many parameters condense to 0, other than the random effect by item and subject, which are the most important
+
+### Maximal v. parsimonious
+- Modeling decisions have to be made, and you should be able to justify your decisions based on your dataa 
+
 """
 
 # ╔═╡ a6c010dc-f52b-4027-af1f-6bd29671599b
@@ -404,7 +439,6 @@ md"""
 - You can quickly check for overparametrized/degenerate models with issingular()
 	issingular(modelname)
 
-
 ### Model comparison
 - Make a manual table that includes AIC, AICc (not sure what that is!), and BIC. BIC is the most conservative.
 	mods = [m_ovi, m_zcp, m_cpx];
@@ -412,6 +446,9 @@ md"""
               AIC = aic.(mods), AICc = aicc.(mods), BIC = bic.(mods))
 - Or use the MixedModel likelihood ratio test
 	MixedModels.likelihoodratiotest(m_zcpCohort_2, m_zcpCohort, m_cpxCohort)
+
+### Rank deficiency 
+- https://juliastats.org/MixedModels.jl/stable/rankdeficiency/
 """
 
 # ╔═╡ b6caa647-99de-4e36-920c-87b30566aed3
@@ -443,6 +480,17 @@ Example below, the path could be any, dfrm is the variable containing the R-data
 
 	library("arrow")
 	fggk21 <- read_feather("./data/fggk21.arrow")
+
+"""
+
+# ╔═╡ 89899c45-6542-4942-aad1-7cdea1668c07
+md"""
+# GLMs
+
+### Complete separation
+- Complete separation = the two response categories are deterministically separated (so there is some combination of predictors that results in always 1 or always 0 responses). Since there is no stochastic component, it's impossible to estimate the slope of the line connecting the 0 and the 1 resonses.
+- https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#penalizationhandling-complete-separation
+
 
 """
 
@@ -497,8 +545,26 @@ Available in MixedModelsTutorial_Basic (bottom of file)
 # ╔═╡ 435d3c42-02e3-49a9-a91f-72c333be0771
 md"""
 # LME4 Tips
-- Always use REML = FALSE 
+
+### REML
+- Pretty much always use REML = FALSE
+- Likelihood ratio tests rely on using -the- likelihood not -a- likelihood ratio
+- DB: REML tries to adjust the math to produce something that was thought to be better but really isn't
+- REML = FALSE is default in MixedModels.jl (I think)
+
+### Convergence errors in lme4
 - For singular fits, try adding "control = lmerControl(calc.derivs = FALSE)"
+- After fitting, lme4 runs post-hoc convergence tests, some of which are not necessary or fail on maximal models (thats why you can set calc.derivs to false) -> maximal models are on the boundary (not in the middle of the "space") so this will fail, these models are singular
+- Models that truly fail to fit, not just fail one of these post-hoc test, often mean that your model does not align with your data 
+- ??? Maximal models are singular 
+
+"""
+
+# ╔═╡ c2e28671-4eb5-4053-91d9-edbed7992a30
+md"""
+# Other resources
+- 
+
 
 """
 
@@ -1194,12 +1260,14 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─e0d02ece-bae5-4eb1-92ae-bbc6d71bdcc1
 # ╟─6109f2b5-6d05-4aeb-9e6e-e8838ffcc19a
 # ╟─b2caf12d-fc74-4e9d-a4ab-95410ade2ee5
-# ╟─71f77e0c-cd7f-4e51-821b-ed949692bde6
-# ╟─a6c010dc-f52b-4027-af1f-6bd29671599b
+# ╠═71f77e0c-cd7f-4e51-821b-ed949692bde6
+# ╠═a6c010dc-f52b-4027-af1f-6bd29671599b
 # ╟─b6caa647-99de-4e36-920c-87b30566aed3
 # ╟─b76330fa-3e94-4490-be78-d3de244fa68a
+# ╠═89899c45-6542-4942-aad1-7cdea1668c07
 # ╟─a6849926-fcb1-485f-b287-e187060a915d
-# ╟─435d3c42-02e3-49a9-a91f-72c333be0771
+# ╠═435d3c42-02e3-49a9-a91f-72c333be0771
+# ╠═c2e28671-4eb5-4053-91d9-edbed7992a30
 # ╟─e4096878-6523-4d2e-a382-5094fd064657
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
