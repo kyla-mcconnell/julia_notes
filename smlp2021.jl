@@ -53,6 +53,12 @@ md"""
 4. Q & A with RK
 5. DB presents optimization with Julia v1.7 (using MLK) with SMLP2021datasets/instructors/Kyla_McConnell/speed.jl
 6. DB presents Arrow (and some wrangling) from SMLP2021/notebooks/Arrow.jl
+
+### Day 3, 08.09.21
+1. Q & A with PA
+2. PA presents about optimizers and fitting procedure with vizfit.jl
+3. PA presents SMLP2021datasets/instructors/Sinika_Timme/analysis.jl
+
 """
 
 # ╔═╡ 26c8a6dd-b56f-49ea-8e3d-277d95dbf997
@@ -65,6 +71,23 @@ md"""
 	sqrt.(array)
 	array .+ 2
 - "Symbols" are represented with a colon, ex. :subj, and are used within the MixedModels/DataFrames framework to represent column names 
+
+### Loading in data
+- Use the CSV package to read in data, here is a complex example. Note that single and double quotes mean different things, strings v. characters
+- dropmissing! can either take column names or if you leave it blank, it will drop any row with a missing
+- The ; is a convention to separate positional from named arguments
+
+	dat = DataFrame(CSV.File("data/hexaff_all.csv"; comment="#", delim=';', missingstring="NA", drop=[1,2], decimal=','))
+
+	dropmissing!(dat, [:FS, :timepoint, :date])
+
+- There's also skipmissing to not drop but just skip the missing values in an array
+
+
+### Exploring data
+- Look at your data with describe()
+	describe(dat)
+
 """
 
 # ╔═╡ e8d16b19-e7b2-4836-8b4e-cc02e7730a3f
@@ -77,6 +100,10 @@ md"""
 - To write text, enclose it in md and three "s (i.e. multi-line string preceded with md for Markdown) -- you can use Markdown syntax like **bold**, *italics* and headers with hashtags.
 - Embed Julia code in Markdown with string interpolation within your markdown call with the dollar sign, i.e. $(1+1)
 - You can output a Pluto notebook as a notebook file, or static HTML/PDF
+
+### Pluto packages
+- Pluto freezes the package versions 
+- You can hover over the checkmark next to the package, and if theres an update available for a package, you can update it (and it will save a copy before)
 
 ### DisplayAs & PlutoUI
 - DisplayAs.Text() for a purely texual output of tables/model output like youd get in the Julia REPL
@@ -114,7 +141,7 @@ md"""
 
 # ╔═╡ f554e99e-1bbd-4693-824a-b2321275b10e
 md"""
-# LMM basics
+# LMM theory
 
 - Standard deviation in the LMM output is in the same scale / unit as the response variable. (Square root of the variance.) 
 
@@ -145,6 +172,12 @@ md"""
 
 	shrinkageplot!(Figure(; resolution=(800,800)), m1, :School)
 
+- PA: The direction of the lines gives you an idea of which components are being shrunk the most. Shrinkage is a good thing. But when a given dimension is shrunk fully to zero (so all the blue dots lie on a single line), then that speaks against including that dimension. (Collapsing to a horizontal or vertical line makes it clear which dimension is shrunk away; a diagonal line indicates that the correlation is very close to ±1, so you knowing one dimension completely defines the other)
+- So if your shrinkage plot is showing everything collapsing to a line, the model may be overfit / have too many random effect terms
+- If there's not much shrinkage (i.e. by participant), that the population mean is not predictive of any individual (example of Sinicas data, where each participant has a very different curve, and the shrinkage plot show very little shrinkage)
+- Misspecified models may lead to "explosion" vs. shrinkage plots, i.e. anti-shrinkage plots, in general just a real mess in the shrinkage plots. PA shows example with Sinicas data where you try to fit a random effect by data measured even though only a miniority of participants were measured on more than one day. (This isn't totally confirmed as the only reason this would happen, but it's often an indicationt hat while the model is mathematically well-defined, it doesn't fit the data logically.)
+- It's possible that you'd have a participant that is far away from the rest but also isn't shrunk much. This can happen if there is good evidene that this person really is that far away from the mean (in the case of a participant RE).
+
 ## Zerocorr models
 - Leaving in a correlation term when its not needed (or otherwise having parameters in a model that aren't necessary) increases the risk of overfitting and adds a source of variability that is not necessary
 
@@ -154,7 +187,77 @@ md"""
 - Sleepstudy example: See how the range of the correlation term goes from -.4 to 1.0, so you can see that a zero corr model may be better.
 
 ## geomdof
-- Geometric degrees of freedom: goes beyond just checking how many parameters are in a model -- sometimes removing one term may actually add more DoF / variance 
+- Geometric degrees of freedom: goes beyond just checking how many parameters are in a model -- sometimes removing one term may actually add more DoF / variance
+
+## Orthogonal contrasts
+- Sequential difference, sum contrast and treatment constrast coding are not orthogonal because multiple levels contain the same information (i.e. level one of a sequential difference coding takes level 2 compared to level 1, whereas the second level takes level 3 compared to level 2)
+- Disadvantages of non-orthogonal contrasts: they are correlated in how they're constructed, so it's sometimes not possible to tell which factor level the variance is coming from -- this variance must then be discarded
+- Visual aid of a venn diagramm: orthogonal contrasts both overlap with the DV -- they explain separatable parts of the variance; non-orthogonal contrasts share variance with the DV but also with each other and this space where all three overlap (variance in the DV plus variance in more than one level of the contrasts) must be discarded. This discarding leads to a loss in statistical power.
+- The more levels of the predictor you have, i.e. the more indicator variables that come from your contrast coding, the more of these overlapping areas of variance you have that have to be discarded and thus the more power lost.
+- The variance described by orthogonal contrasts (by the indicator variables that represent the levels of the orthogonal contrasts) sums up to the R2, the variance described by the model. 
+
+## Correlation parameters
+- Correlations between random effects show not "does a kid who runs fast also jump high", that would be at the level of the data. 
+- With non-orthogonal coding schemes, watch for if the levels/indicator variables are (negatively) artefactually correlated, because the same underlying levels are in multiple comparisons/levels (ex of star run -- either it's closer to endurance, in which case it will negatively correlate with the difference to sprint speed, or vice versa). 
+- ... (still need more info here)
+
+## R-squared 
+- Trying to extend the R-squared to a mixed model is not possible, since it's based on the Pearsons correlation coefficient, which has no concept of variance by random factors
+- R-squared is often viewed as "variation explained" but it's unclear what that would mean in a mixed model
+- Alternatives: Fitted vs. observed plot, looking at what your model is and is not capturing 
+- Standardized effect sizes are not necessary or useful in this context
+- There exist packages for R2 for LMMs but they do not behave how you would expect / it doesnt have the same implications
+
+## Contrast coding
+- Prepring by Alday & Brehm "A decade of mixed models: It’s past time to set your contrasts"
+
+## A priori vs. post-hoc contasts
+- ?
+
+## Singular fits 
+- Ellipse collaspes into a line (like a wire is 3d but you consider it to be 1d for all practical purposes)
+- More complexity in model specification than justified by your data 
+- There may be variation in subjects/items/random effects, but it's so minor that it's not really relevant to distinguish it from the noise (indistinguishable from the residual variation)
+- PA: For mixed models, its not just the number of observations, but also the number of participants and the number of items -> even if you have a lot of measurements, if you dont have many levels of the random effects then it gets difficult to estimate them
+- PA: Having more trials per participants does help in some way, because it helps you define that participant well, but if you have few participants, it's still difficult -- so there's not a clear answer / perfect rule on which to increase first (items or participant), you should try to get as many people and items as possible but possible is ofc subjective. "It's not always possible to make the inferences we want based on the data we have, and just because we have spent time/money getting the data doesn't mean that we can make the inferences we want to make, and statistics won't save you there." So sometimes we have to accept uncertainty.
+- At least one of the random effect terms' SD has gone to 0, or one of the correlation terms has gone to +1 or -1 (so they perfectly predict each other according to the model), aka at least dimension is redundant
+- Example of a very strong correlation within subject of starting high in assessment leading to a small increase in assessment at a later time point vs. starting low correlating with a strong increase at the later time point (ex of children's development
+- So the variance can be described in less dimensions than you've given
+
+## Optimizer
+- BobyQA is the default in MixedModels.jl and lme4, and works better than the others, see vizfit.jl for a visualization (but the visualization is a singular fit, you'll see the theta estimates / random effects parameters collapse to 0 in the second panel with green/orange lines)
+- How many iterations are too many? This could become relevant when doing simulations, for example. You often reach a close guess at the estimates around 300 iterations, but you only know for sure if that's true / if you're actually close if you continue to run. 
+- There is also scale sensitivity: with large datasets, you're more able to detect when you're "off just a little bit"
+- In Julia, each iteration takes far less time, so we can typically let it run and not have to set a maximum number of iterations
+- There is the option of a maximum amount of time or max amount of iterations before just stopping the fitting process -- not generally a super great idea but it's available of option
+- Premature stopping risks not having an ideal solution -- might be fine for power analysis but not other things
+- Other visualization in vizfit.jl shows the SDs by random effects which vary between 1 and 0 where 0 is the residual SD (artificial scale Cholesky.. ??), and the rhos that show the correlation terms between -1 and 1. Basically it shows that many parameters condense to 0, other than the random effect by item and subject, which are the most important
+
+## Maximal v. parsimonious
+- Modeling decisions have to be made, and you should be able to justify your decisions based on your data
+
+## Small grouping variables
+- Having a grouping variable / random effect that is very small, i.e. 5 levels, is not great because the error of a mean on 5 things is quite large, the error on the variance of 5 things is even larger.
+- https://www.muscardinus.be/2018/09/number-random-effect-levels/
+- If you have a small grouping variable but some of those sources of variance are taken care of in fixed effects, then you might be able to get away with that, for example if you have less participants but you account for their age and other important factors as fixed effects.
+
+## Identifying overfit models
+- Corelation parameter goes to 1 or -1
+- SD goes to 0
+- Residual is 0 or very tiny
+- The deviance is negative in a likelihoodtest (guess this is pretty rare but it is weird)
+- AIC is negative 
+
+"""
+
+# ╔═╡ 89899c45-6542-4942-aad1-7cdea1668c07
+md"""
+# GLMs
+
+### Complete separation
+- Complete separation = the two response categories are deterministically separated (so there is some combination of predictors that results in always 1 or always 0 responses). Since there is no stochastic component, it's impossible to estimate the slope of the line connecting the 0 and the 1 resonses.
+- https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#penalizationhandling-complete-separation
+
 """
 
 # ╔═╡ e210b065-219c-4ec9-889f-3d738f69085a
@@ -208,6 +311,76 @@ md"""
 
 """
 
+# ╔═╡ a6c010dc-f52b-4027-af1f-6bd29671599b
+md"""
+
+# Defining LMM models in Julia
+
+### Grouping contrast
+- You can assign a column as a Grouping factor (in your contrasts Dict), which will speed up the computation because it tells the model to ignore that column when trying to create contrasts. This is useful for large datasets where there are a lot of levels of the grouping variables (i.e. 10,000 individuals)
+- Z-scoring a predictor within a grouping variable:
+	select!(groupby(dat,  :Test), :, :score => zscore => :zScore);
+- It becomes important to set a random effect as a Grouping contrast if it is read in as a numeric (like if you have numbers for participant ID).
+
+### Singular fits
+- You can quickly check for overparametrized/degenerate models with issingular()
+	issingular(modelname)
+
+### Model comparison
+- Make a manual table that includes AIC, AICc (not sure what that is!), and BIC. BIC is the most conservative.
+	mods = [m_ovi, m_zcp, m_cpx];
+	gof_summary = DataFrame(dof=dof.(mods), deviance=deviance.(mods),
+              AIC = aic.(mods), AICc = aicc.(mods), BIC = bic.(mods))
+- Or use the MixedModel likelihood ratio test
+	MixedModels.likelihoodratiotest(m_zcpCohort_2, m_zcpCohort, m_cpxCohort)
+
+### Rank deficiency 
+- https://juliastats.org/MixedModels.jl/stable/rankdeficiency/
+
+### .rePCA
+- Show cumulative variance explained by the random effects terms
+- If you count at what point the variance reaches or gets very close to 1.0, then that is very roughly the number of random terms you need 
+
+### Differences to lme4
+- Define your formula using the @formula macro
+- Interactions are denoted with & (instead of the colon)
+
+### modelname.optsum()
+- Info about the fit, -1 means go forever (i.e. number of iterations, time to fit, etc.)
+- FTOL_REACHED is what you want, this means that the optimization reached a solution point within its tolerance, you wouldn't want to see something like forced stop
+
+You could also set a max number of iterations or time in s, or change the optimizer
+
+	modelname.optsum.maxfeval = 300
+	modelname.optsum.maxtime = 10 
+	modelname.optsum.optimizer = :LN_COBYLA 
+
+You can use any optimizer from the NLTOKs(?) package.
+
+## Post fit graphs
+- Plot observed v. fit with base Makie
+
+	scatter(fitted(modelname), response(modelname))
+
+- Plot residuals v. fitted
+	
+	scatter(residuals(modelname), fitted(modelname))
+
+- qqplot with line: diverging from the line indicates heavy tails, flatlining at the end indicated bounded data
+	
+	qqnorm(modelname)
+
+- Cool new plots in MixedModelsMakie where you can do a ridgeplot of bootstrap estimates of coefficients(?) or randeff(?) -- check & the line underneath is the shortest coverage interval
+
+## MixedModelsExtras
+- Extra functions that aren't really recommended but are available
+
+## effects package
+- Effects are invariant to contrast codings because they come from the predictions, which is what makes it good for understanding your contrasts
+
+
+"""
+
 # ╔═╡ f9c68d4a-f141-43ad-8267-5fd3178fdde1
 md"""
 # DataFramesMacro
@@ -240,6 +413,15 @@ md"""
 - groupby (= group_by)
 - combine (= summarize)
 - subset (= filter)
+"""
+
+# ╔═╡ 83649dfd-fe84-46a2-8c4f-85fb376331e7
+md"""
+### select
+- Works similar to select in tidyverse
+- Can also use Not() as a helper function
+
+	select(dat, Not([:FS, :HR])
 """
 
 # ╔═╡ 4389e77d-799c-497c-8015-c726938df571
@@ -362,95 +544,6 @@ This one takes the first grouping (1 observation? Maybe? Depending on how it was
 	combine(groupby(first(gdf), :Sex), nrow => :n)
 """
 
-# ╔═╡ b2caf12d-fc74-4e9d-a4ab-95410ade2ee5
-md"""
-# Plotting in Julia
-
-### Ridgeplot
-Not sure if this is the full code needed here or what data wrangling you have to do in advance to get grouped ridges / densities
-	ridgeplot(parent(gdf), :age, :n)
-
-"""
-
-# ╔═╡ 71f77e0c-cd7f-4e51-821b-ed949692bde6
-md"""
-# LMM Theory
-
-## Orthogonal contrasts
-- Sequential difference, sum contrast and treatment constrast coding are not orthogonal because multiple levels contain the same information (i.e. level one of a sequential difference coding takes level 2 compared to level 1, whereas the second level takes level 3 compared to level 2)
-- Disadvantages of non-orthogonal contrasts: they are correlated in how they're constructed, so it's sometimes not possible to tell which factor level the variance is coming from -- this variance must then be discarded
-- Visual aid of a venn diagramm: orthogonal contrasts both overlap with the DV -- they explain separatable parts of the variance; non-orthogonal contrasts share variance with the DV but also with each other and this space where all three overlap (variance in the DV plus variance in more than one level of the contrasts) must be discarded. This discarding leads to a loss in statistical power.
-- The more levels of the predictor you have, i.e. the more indicator variables that come from your contrast coding, the more of these overlapping areas of variance you have that have to be discarded and thus the more power lost.
-- The variance described by orthogonal contrasts (by the indicator variables that represent the levels of the orthogonal contrasts) sums up to the R2, the variance described by the model. 
-
-## Correlation parameters
-- Correlations between random effects show not "does a kid who runs fast also jump high", that would be at the level of the data. 
-- With non-orthogonal coding schemes, watch for if the levels/indicator variables are (negatively) artefactually correlated, because the same underlying levels are in multiple comparisons/levels (ex of star run -- either it's closer to endurance, in which case it will negatively correlate with the difference to sprint speed, or vice versa). 
-- ... (still need more info here)
-
-## R-squared 
-- Trying to extend the R-squared to a mixed model is not possible, since it's based on the Pearsons correlation coefficient, which has no concept of variance by random factors
-- R-squared is often viewed as "variation explained" but it's unclear what that would mean in a mixed model
-- Alternatives: Fitted vs. observed plot, looking at what your model is and is not capturing 
-- Standardized effect sizes are not necessary or useful in this context
-- There exist packages for R2 for LMMs but they do not behave how you would expect / it doesnt have the same implications
-
-## Contrast coding
-- Prepring by Alday & Brehm "A decade of mixed models: It’s past time to set your contrasts"
-
-## A priori vs. post-hoc contasts
-- ?
-
-## Singular fits 
-- Ellipse collaspes into a line (like a wire is 3d but you consider it to be 1d for all practical purposes)
-- More complexity in model specification than justified by your data 
-- There may be variation in subjects/items/random effects, but it's so minor that it's not really relevant to distinguish it from the noise (indistinguishable from the residual variation)
-- PA: For mixed models, its not just the number of observations, but also the number of participants and the number of items -> even if you have a lot of measurements, if you dont have many levels of the random effects then it gets difficult to estimate them
-- PA: Having more trials per participants does help in some way, because it helps you define that participant well, but if you have few participants, it's still difficult -- so there's not a clear answer / perfect rule on which to increase first (items or participant), you should try to get as many people and items as possible but possible is ofc subjective. "It's not always possible to make the inferences we want based on the data we have, and just because we have spent time/money getting the data doesn't mean that we can make the inferences we want to make, and statistics won't save you there." So sometimes we have to accept uncertainty.
-- At least one of the random effect terms' SD has gone to 0, or one of the correlation terms has gone to +1 or -1 (so they perfectly predict each other according to the model), aka at least dimension is redundant
-- Example of a very strong correlation within subject of starting high in assessment leading to a small increase in assessment at a later time point vs. starting low correlating with a strong increase at the later time point (ex of children's development
-- So the variance can be described in less dimensions than you've given
-
-### Optimizer
-- BobyQA is the default in MixedModels.jl and lme4, and works better than the others, see vizfit.jl for a visualization (but the visualization is a singular fit, you'll see the theta estimates / random effects parameters collapse to 0 in the second panel with green/orange lines)
-- How many iterations are too many? This could become relevant when doing simulations, for example. You often reach a close guess at the estimates around 300 iterations, but you only know for sure if that's true / if you're actually close if you continue to run. 
-- There is also scale sensitivity: with large datasets, you're more able to detect when you're "off just a little bit"
-- In Julia, each iteration takes far less time, so we can typically let it run and not have to set a maximum number of iterations
-- There is the option of a maximum amount of time or max amount of iterations before just stopping the fitting process -- not generally a super great idea but it's available of option
-- Premature stopping risks not having an ideal solution -- might be fine for power analysis but not other things
-- Other visualization in vizfit.jl shows the SDs by random effects which vary between 1 and 0 where 0 is the residual SD (artificial scale Cholesky.. ??), and the rhos that show the correlation terms between -1 and 1. Basically it shows that many parameters condense to 0, other than the random effect by item and subject, which are the most important
-
-### Maximal v. parsimonious
-- Modeling decisions have to be made, and you should be able to justify your decisions based on your dataa 
-
-"""
-
-# ╔═╡ a6c010dc-f52b-4027-af1f-6bd29671599b
-md"""
-
-# Defining LMM models in Julia
-
-### Grouping contrast
-- You can assign a column as a Grouping factor (in your contrasts Dict), which will speed up the computation because it tells the model to ignore that column when trying to create contrasts. This is useful for large datasets where there are a lot of levels of the grouping variables (i.e. 10,000 individuals)
-- Z-scoring a predictor within a grouping variable:
-	select!(groupby(dat,  :Test), :, :score => zscore => :zScore);
-
-### Singular fits
-- You can quickly check for overparametrized/degenerate models with issingular()
-	issingular(modelname)
-
-### Model comparison
-- Make a manual table that includes AIC, AICc (not sure what that is!), and BIC. BIC is the most conservative.
-	mods = [m_ovi, m_zcp, m_cpx];
-	gof_summary = DataFrame(dof=dof.(mods), deviance=deviance.(mods),
-              AIC = aic.(mods), AICc = aicc.(mods), BIC = bic.(mods))
-- Or use the MixedModel likelihood ratio test
-	MixedModels.likelihoodratiotest(m_zcpCohort_2, m_zcpCohort, m_cpxCohort)
-
-### Rank deficiency 
-- https://juliastats.org/MixedModels.jl/stable/rankdeficiency/
-"""
-
 # ╔═╡ b6caa647-99de-4e36-920c-87b30566aed3
 md"""
 # Julia 1.7.0 & MixedModels
@@ -483,14 +576,13 @@ Example below, the path could be any, dfrm is the variable containing the R-data
 
 """
 
-# ╔═╡ 89899c45-6542-4942-aad1-7cdea1668c07
+# ╔═╡ b2caf12d-fc74-4e9d-a4ab-95410ade2ee5
 md"""
-# GLMs
+# Plotting in Julia
 
-### Complete separation
-- Complete separation = the two response categories are deterministically separated (so there is some combination of predictors that results in always 1 or always 0 responses). Since there is no stochastic component, it's impossible to estimate the slope of the line connecting the 0 and the 1 resonses.
-- https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#penalizationhandling-complete-separation
-
+### Ridgeplot
+Not sure if this is the full code needed here or what data wrangling you have to do in advance to get grouped ridges / densities
+	ridgeplot(parent(gdf), :age, :n)
 
 """
 
@@ -1218,12 +1310,13 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╔═╡ Cell order:
 # ╟─3837e757-3676-419b-b443-7a55a3323a49
 # ╟─6594dafa-0ee3-11ec-2913-8124854ce8e6
-# ╟─1b153a84-7fc7-4cb6-abed-0ec2d3188aa3
-# ╟─26c8a6dd-b56f-49ea-8e3d-277d95dbf997
-# ╟─e8d16b19-e7b2-4836-8b4e-cc02e7730a3f
+# ╠═1b153a84-7fc7-4cb6-abed-0ec2d3188aa3
+# ╠═26c8a6dd-b56f-49ea-8e3d-277d95dbf997
+# ╠═e8d16b19-e7b2-4836-8b4e-cc02e7730a3f
 # ╟─942a740d-77fe-4b95-8b5d-da0cff35e3a7
 # ╟─72d6b331-1fc6-4ff5-9720-b40cbcfc8135
-# ╟─f554e99e-1bbd-4693-824a-b2321275b10e
+# ╠═f554e99e-1bbd-4693-824a-b2321275b10e
+# ╠═89899c45-6542-4942-aad1-7cdea1668c07
 # ╟─e210b065-219c-4ec9-889f-3d738f69085a
 # ╠═a4c58af2-2bbd-4732-bf6a-2047555222ad
 # ╠═c46ea987-362a-48b6-acfa-23a94a4da3ce
@@ -1237,10 +1330,12 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═e5c5583b-eb65-496e-9805-b7c8da218838
 # ╠═11661dcd-bfa8-43f7-95f7-3d8b03010bf7
 # ╟─6386d5a9-2d24-41af-a443-c21f04310e6a
+# ╠═a6c010dc-f52b-4027-af1f-6bd29671599b
 # ╟─f9c68d4a-f141-43ad-8267-5fd3178fdde1
 # ╟─aa2645e2-c639-4114-aad2-88bf013293de
 # ╟─40bf7d9b-dddd-43b0-bab6-1eaaa01f640a
 # ╟─445c7416-91a3-4658-a99a-0a5645d933a4
+# ╠═83649dfd-fe84-46a2-8c4f-85fb376331e7
 # ╟─4389e77d-799c-497c-8015-c726938df571
 # ╠═3534eeee-7c4e-4280-9d74-339967dd49db
 # ╟─76340b70-883b-4f4a-8a18-a1432072e245
@@ -1259,12 +1354,9 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─e75f102a-0fdb-4814-9316-0b33c5bf6824
 # ╟─e0d02ece-bae5-4eb1-92ae-bbc6d71bdcc1
 # ╟─6109f2b5-6d05-4aeb-9e6e-e8838ffcc19a
-# ╟─b2caf12d-fc74-4e9d-a4ab-95410ade2ee5
-# ╠═71f77e0c-cd7f-4e51-821b-ed949692bde6
-# ╠═a6c010dc-f52b-4027-af1f-6bd29671599b
 # ╟─b6caa647-99de-4e36-920c-87b30566aed3
 # ╟─b76330fa-3e94-4490-be78-d3de244fa68a
-# ╠═89899c45-6542-4942-aad1-7cdea1668c07
+# ╟─b2caf12d-fc74-4e9d-a4ab-95410ade2ee5
 # ╟─a6849926-fcb1-485f-b287-e187060a915d
 # ╠═435d3c42-02e3-49a9-a91f-72c333be0771
 # ╠═c2e28671-4eb5-4053-91d9-edbed7992a30
